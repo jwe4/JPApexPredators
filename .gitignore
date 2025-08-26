@@ -1,0 +1,9 @@
+# Xcode
+*.xcuserdatad
+*.xcworkspace/xcuserdata
+*.xcodeproj/xcuserdata
+*.xcarchive
+*.xcscmblueprint
+.DS_Store
+build/
+DerivedData/
