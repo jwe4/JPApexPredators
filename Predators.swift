@@ -1,10 +1,3 @@
-//
-//  Predators.swift
-//  JPApexPredators
-//
-//  Created by Jim Weaver on 8/25/25.
-//
-
 import Foundation
 
 class Predators {
@@ -27,18 +20,18 @@ class Predators {
         }
     }
     
-    func search(for searchTerm: String) -> [ApexPredator] {
+    func search(_ predators: [ApexPredator], for searchTerm: String) -> [ApexPredator] {
         if searchTerm.isEmpty {
-            return apexPredators
+            return predators
         } else {
-            return apexPredators.filter { predator in
+            return predators.filter { predator in
                 predator.name.localizedCaseInsensitiveContains(searchTerm)
             }
         }
     }
     
-    func sort(by alphabetical: Bool) -> [ApexPredator] {
-        apexPredators.sorted { predator1, predator2 in
+    func sort(_ predators: [ApexPredator], by alphabetical: Bool) -> [ApexPredator] {
+        predators.sorted { predator1, predator2 in
             if alphabetical {
                 return predator1.name < predator2.name
             } else {
@@ -47,11 +40,11 @@ class Predators {
         }
     }
     
-    func filter(by type: APType) -> [ApexPredator] {
+    func filter(_ predators: [ApexPredator], by type: APType) -> [ApexPredator] {
         if type == .all {
-            return apexPredators
+            return predators
         } else {
-            return apexPredators.filter { predator in
+            return predators.filter { predator in
                 predator.type == type
             }
         }

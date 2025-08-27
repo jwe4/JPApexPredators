@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  JPApexPredators
-//
-//  Created by Jim Weaver on 8/25/25.
-//
-
 import SwiftUI
 
 struct ContentView: View {
@@ -14,14 +7,10 @@ struct ContentView: View {
     @State var currentSelection = APType.all
 
     var filteredDinos: [ApexPredator] {
-        var result = predators.apexPredators
-        // Apply type filter
-        result = predators.filter(by: currentSelection)
-        // Apply search filter
-        result = predators.search(for: searchText)
-        // Apply sorting
-        result = predators.sort(by: alphabetical)
-        return result
+        let filteredByType = predators.filter(predators.apexPredators, by: currentSelection)
+        let filteredBySearch = predators.search(filteredByType, for: searchText)
+        let sortedResult = predators.sort(filteredBySearch, by: alphabetical)
+        return sortedResult
     }
 
     var body: some View {
@@ -111,5 +100,12 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    let predators = Predators()
+    predators.apexPredators = [
+        ApexPredator(id: 1, name: "Tyrannosaurus Rex", type: .land, latitude: 0, longitude: 0, movies: [], movieScenes: [], link: ""),
+        ApexPredator(id: 2, name: "Velociraptor", type: .land, latitude: 0, longitude: 0, movies: [], movieScenes: [], link: ""),
+        ApexPredator(id: 3, name: "Pteranodon", type: .air, latitude: 0, longitude: 0, movies: [], movieScenes: [], link: ""),
+        ApexPredator(id: 4, name: "Mosasaurus", type: .sea, latitude: 0, longitude: 0, movies: [], movieScenes: [], link: "")
+    ]
+    return ContentView()
 }
