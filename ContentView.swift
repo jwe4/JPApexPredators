@@ -9,8 +9,13 @@ struct ContentView: View {
     var filteredDinos: [ApexPredator] {
         let filteredByType = predators.filter(predators.apexPredators, by: currentSelection)
         let filteredBySearch = predators.search(filteredByType, for: searchText)
-        let sortedResult = predators.sort(filteredBySearch, by: alphabetical)
-        return sortedResult
+//        let sortedResult = predators.sort(filteredBySearch, by: alphabetical)
+        
+        predators.filter(by: currentSelection)
+        predators.sort(by: alphabetical)
+        return predators.search(for: searchText);
+        
+//        return sortedResult
     }
 
     var body: some View {
@@ -37,9 +42,7 @@ struct ContentView: View {
     private var listView: some View {
         List(filteredDinos) { predator in
             NavigationLink {
-                Image(predator.image)
-                    .resizable()
-                    .scaledToFit()
+                PredatorDetail(predator: predator)
             } label: {
                 PredatorRow(predator: predator)
             }
@@ -87,7 +90,7 @@ struct ContentView: View {
     // Extracted Filter Menu
     private var filterMenu: some View {
         Menu {
-            Picker("Filter", selection: $currentSelection) {
+            Picker("Filter", selection: $currentSelection.animation()) {
                 ForEach(APType.allCases) { type in
                     Label(type.rawValue.capitalized, systemImage: type.icon)
                         .tag(type)
