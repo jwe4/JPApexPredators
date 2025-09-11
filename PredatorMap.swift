@@ -12,6 +12,7 @@ struct PredatorMap: View {
     let predators = Predators()
     @State var position: MapCameraPosition
     @State var satellite = false
+    @State var selectedPredator: ApexPredator?
     var body: some View {
         Map(position: $position) {
             ForEach(predators.apexPredators) {
@@ -23,8 +24,15 @@ struct PredatorMap: View {
                         .frame(height: 100)
                         .shadow(color: .white, radius: 3)
                         .scaleEffect(x: -1)
+                        .contentShape(Rectangle()) // Makes the entire image area tappable
+                        .onTapGesture {
+                            selectedPredator = predator // Set the selected predator
+                        }
                 }
             }
+        }
+        .sheet(item: $selectedPredator) { predator in
+            PredatorInfo(predator: predator) // This is a new view you'll create
         }
         .mapStyle(satellite ? .imagery(elevation: .realistic) : .standard(elevation: .realistic))
         .overlay(alignment: .bottomTrailing) {

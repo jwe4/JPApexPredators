@@ -68,3 +68,22 @@ enum APType: String, Decodable, CaseIterable, Identifiable {
         }
     }
 }
+
+enum MovieSelection: Hashable, Identifiable {
+    case all
+    case title(String)
+
+    var id: String {
+        switch self {
+        case .all: return "ALL_MOVIES"
+        case .title(let t): return "MOVIE_\(t)"
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .all: return "All Movies"
+        case .title(let t): return t
+        }
+    }
+}
