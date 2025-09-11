@@ -6,17 +6,37 @@ struct ContentView: View {
     @State var searchText = ""
     @State var alphabetical = false
     @State var currentSelection = APType.all
+    @State private var selectedMovie: MovieSelection = .all
+    
+    // llm link describing adding filter by movie https://chatgpt.com/share/68c2552e-db6c-800a-846e-520910b52a7d
+
+    // Unique, sorted movie titles pulled from your data
+    private var allMovieTitles: [String] {
+        Array(
+            Set(predators.apexPredators.flatMap { $0.movies })
+        ).sorted()
+    }
 
     var filteredDinos: [ApexPredator] {
-        let filteredByType = predators.filter(predators.apexPredators, by: currentSelection)
-        let filteredBySearch = predators.search(filteredByType, for: searchText)
-//        let sortedResult = predators.sort(filteredBySearch, by: alphabetical)
-        
-        predators.filter(by: currentSelection)
-        predators.sort(by: alphabetical)
-        return predators.search(for: searchText);
-        
-//        return sortedResult
+        // 1) filter by type
+        let byType = predators.filter(predators.apexPredators, by: currentSelection)
+
+        // 2) filter by selected movie
+        let byMovie: [ApexPredator]
+        switch selectedMovie {
+        case .all:
+            byMovie = byType
+        case .title(let m):
+            byMovie = byType.filter { $0.movies.contains(m) }
+        }
+
+        // 3) search
+        let bySearch = predators.search(byMovie, for: searchText)
+
+        // 4) sort (assuming your Predators.sort(_:by:) returns a new array)
+        let sorted = predators.sort(bySearch, by: alphabetical)
+
+        return sorted
     }
 
     var body: some View {
@@ -27,6 +47,7 @@ struct ContentView: View {
                 .autocorrectionDisabled()
                 .animation(.default, value: searchText)
                 .animation(.default, value: currentSelection)
+                .animation(.default, value: selectedMovie)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         sortButton
@@ -96,16 +117,36 @@ struct ContentView: View {
     // Extracted Filter Menu
     private var filterMenu: some View {
         Menu {
-            Picker("Filter", selection: $currentSelection.animation()) {
+            // Type filter
+            Picker("Type", selection: $currentSelection.animation()) {
                 ForEach(APType.allCases) { type in
                     Label(type.rawValue.capitalized, systemImage: type.icon)
                         .tag(type)
+                }
+            }
+
+            // Movie filter
+            Picker("Movie", selection: $selectedMovie.animation()) {
+                Text("All Movies").tag(MovieSelection.all)
+                ForEach(allMovieTitles, id: \.self) { title in
+                    Text(title).tag(MovieSelection.title(title))
+                }
+            }
+
+            // Optional convenience action:
+            Button("Clear Filters") {
+                withAnimation {
+                    currentSelection = .all
+                    selectedMovie = .all
+                    searchText = ""
                 }
             }
         } label: {
             Image(systemName: "slider.horizontal.3")
         }
     }
+    
+    
 }
 
 #Preview {
