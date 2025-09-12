@@ -16,6 +16,7 @@ struct ApexPredator: Decodable, Identifiable {
     let movies: [String]
     let movieScenes: [MovieScene]
     let link: String
+    var deleted: Bool = false
     
     var image:String {
         name.lowercased().replacingOccurrences(of: " ", with: "")
@@ -29,6 +30,36 @@ struct ApexPredator: Decodable, Identifiable {
         let id: Int
         let movie: String
         let sceneDescription: String
+    }
+    // Safe default for `deleted` even if JSON lacks the key
+    private enum CodingKeys: String, CodingKey {
+        case id, name, type, latitude, longitude, movies, movieScenes, link, deleted
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id          = try c.decode(Int.self, forKey: .id)
+        name        = try c.decode(String.self, forKey: .name)
+        type        = try c.decode(APType.self, forKey: .type)
+        latitude    = try c.decode(Double.self, forKey: .latitude)
+        longitude   = try c.decode(Double.self, forKey: .longitude)
+        movies      = try c.decode([String].self, forKey: .movies)
+        movieScenes = try c.decode([MovieScene].self, forKey: .movieScenes)
+        link        = try c.decode(String.self, forKey: .link)
+        deleted     = try c.decodeIfPresent(Bool.self, forKey: .deleted) ?? false
+    }
+
+    // Convenience init for previews or programmatic construction
+    init(id: Int, name: String, type: APType, latitude: Double, longitude: Double, movies: [String], movieScenes: [MovieScene], link: String, deleted: Bool = false) {
+        self.id = id
+        self.name = name
+        self.type = type
+        self.latitude = latitude
+        self.longitude = longitude
+        self.movies = movies
+        self.movieScenes = movieScenes
+        self.link = link
+        self.deleted = deleted
     }
 }
 

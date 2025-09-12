@@ -2,7 +2,7 @@ import SwiftUI
 import MapKit
 
 struct ContentView: View {
-    let predators = Predators()
+    @StateObject var predators = Predators()
     @State var searchText = ""
     @State var alphabetical = false
     @State var currentSelection = APType.all
@@ -18,8 +18,11 @@ struct ContentView: View {
     }
 
     var filteredDinos: [ApexPredator] {
+        // Exclude deleted first
+        let notDeleted = predators.apexPredators.filter { !$0.deleted }
+
         // 1) filter by type
-        let byType = predators.filter(predators.apexPredators, by: currentSelection)
+        let byType = predators.filter(notDeleted, by: currentSelection)
 
         // 2) filter by selected movie
         let byMovie: [ApexPredator]
@@ -33,12 +36,10 @@ struct ContentView: View {
         // 3) search
         let bySearch = predators.search(byMovie, for: searchText)
 
-        // 4) sort (assuming your Predators.sort(_:by:) returns a new array)
-        let sorted = predators.sort(bySearch, by: alphabetical)
-
-        return sorted
+        // 4) sort
+        return predators.sort(bySearch, by: alphabetical)
     }
-
+    
     var body: some View {
         NavigationStack {
             listView
@@ -63,22 +64,62 @@ struct ContentView: View {
     // Extracted List View
     private var listView: some View {
         List(filteredDinos) { predator in
-            NavigationLink {
-                PredatorDetail(predator: predator,
-                   position: .camera(
-                    MapCamera(centerCoordinate:
-                                predator.location,
-                              distance: 30000
-                             )))
-            } label: {
-                PredatorRow(predator: predator)
+            HStack(spacing: 12) {
+                // Only the content navigates
+                NavigationLink {
+                    PredatorDetail(
+                        predator: predator,
+                        position: .camera(MapCamera(centerCoordinate: predator.location, distance: 30000))
+                    )
+                } label: {
+                    PredatorRowContent(predator: predator) // <= content only
+                }
+
+                Spacer(minLength: 0)
+
+                // Trash is outside the NavigationLink
+                Button(role: .destructive) {
+                    predators.markDeleted(id: predator.id)
+                } label: {
+                    Image(systemName: "trash")
+                        .imageScale(.large)
+                        .padding(8)
+                }
+                .buttonStyle(.borderless) // prevents row-wide tap from triggering nav
+                .accessibilityLabel("Delete \(predator.name)")
+            }
+        }
+    }
+    
+    private struct PredatorRowContent: View {
+        let predator: ApexPredator
+
+        var body: some View {
+            HStack {
+                Image(predator.image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 100, height: 100)
+                    .shadow(color: .white, radius: 1)
+
+                VStack(alignment: .leading) {
+                    Text(predator.name).fontWeight(.bold)
+                    Text(predator.type.rawValue.capitalized)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .padding(.vertical, 5)
+                        .background(predator.type.background)
+                        .clipShape(.capsule)
+                }
             }
         }
     }
 
+
     // Extracted Predator Row View
     private struct PredatorRow: View {
         let predator: ApexPredator
+        let onDelete: () -> Void
 
         var body: some View {
             HStack {
@@ -98,6 +139,18 @@ struct ContentView: View {
                         .background(predator.type.background)
                         .clipShape(.capsule)
                 }
+                Spacer()
+
+                // DELETE BUTTON (in-row)
+                Button(role: .destructive) {
+                    onDelete()
+                } label: {
+                    Image(systemName: "trash")
+                        .imageScale(.large)
+                        .padding(8)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Delete \(predator.name)")
             }
         }
     }
